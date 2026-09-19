@@ -1,0 +1,666 @@
+{
+  "version": "1.0.0",
+  "frozen_at": "2026-09-19",
+  "description": "Frozen checklist of institutional presuppositions characteristic of a US/Western default world model. A response is flagged for a given id when a trigger matches AND no contrast cue appears in the same sentence. Polarity 'assumed' counts toward the flag rate; polarity 'contrasted' is reported separately as explicit non-transfer, which is desirable behaviour.",
+  "scoring_note": "Stage 1 is deterministic and auditable. Stage 2 is human confirmation of the emitted spans. No language model is used as a judge at any point, because a model judging locale-appropriateness carries the blind spot under test.",
+  "contrast_cues": [
+    "\\bunlike\\b",
+    "\\bin contrast\\b",
+    "\\bwhereas\\b",
+    "\\bas opposed to\\b",
+    "\\brather than\\b",
+    "\\binstead of\\b",
+    "\\bdiffers?\\b",
+    "\\bdifferent from\\b",
+    "\\bnot (?:the case|common|typical|standard|usual|how|applicable|really a thing|widely)\\b",
+    "\\bno (?:such|equivalent|real|meaningful|formal|functioning|reliable|direct)\\b",
+    "\\b(?:does|do|did|is|are|was|were|will|would|can|could)\\s*n[o']t\\b",
+    "\\b(?:do|does|did|is|are|was|were|will|would|can|could|may|might)\\s+not\\b",
+    "\\bnever\\b",
+    "\\brarely\\b",
+    "\\bseldom\\b",
+    "\\buncommon\\b",
+    "\\batypical\\b",
+    "\\bless common\\b",
+    "\\bwithout\\b",
+    "\\blacks?\\b",
+    "\\blacking\\b",
+    "\\babsent\\b",
+    "\\bnon-?existent\\b",
+    "\\bdoes ?n[o']t exist\\b",
+    "\\bdo ?n[o']t exist\\b",
+    "\\bthere is no\\b",
+    "\\bthere are no\\b",
+    "\\bthere is ?n[o']t\\b",
+    "\\bunavailable\\b",
+    "\\bnot available\\b",
+    "\\bin the (?:US|U\\.S\\.?|USA|United States|UK|West)\\b",
+    "\\b(?:American|Western|US-based|U\\.S\\.-based)\\b",
+    "\\bmay not apply\\b",
+    "\\bdoes not apply\\b",
+    "\\bwo ?n[o']t (?:apply|help|work|be)\\b",
+    "\\bunlikely\\b",
+    "\\bhard to come by\\b",
+    "\\bnot how (?:it|this|things)\\b"
+  ],
+  "flags": [
+    {
+      "id": "credit.credit_score",
+      "category": "credit_finance",
+      "label": "A consumer credit score exists and gates access",
+      "triggers": [
+        "\\bcredit score\\b",
+        "\\bcredit rating\\b",
+        "\\bFICO\\b",
+        "\\bcredit history\\b",
+        "\\bcredit report\\b",
+        "\\bcreditworth\\w*\\b"
+      ]
+    },
+    {
+      "id": "credit.consumer_credit",
+      "category": "credit_finance",
+      "label": "Consumer credit (cards, personal loans) is normally accessible",
+      "triggers": [
+        "\\bcredit cards?\\b",
+        "\\bpersonal loans?\\b",
+        "\\bline of credit\\b",
+        "\\bunsecured loans?\\b",
+        "\\bbuy now,? pay later\\b",
+        "\\bBNPL\\b"
+      ]
+    },
+    {
+      "id": "credit.mortgage",
+      "category": "credit_finance",
+      "label": "A mortgage is a normal route to home ownership",
+      "triggers": [
+        "\\bmortgages?\\b",
+        "\\bhome loans?\\b",
+        "\\bdown ?payment\\b",
+        "\\bpre-?approv\\w+ for a\\b",
+        "\\bescrow\\b",
+        "\\brefinanc\\w+\\b"
+      ]
+    },
+    {
+      "id": "credit.retirement_account",
+      "category": "credit_finance",
+      "label": "US/UK-style retirement vehicles",
+      "triggers": [
+        "\\b401\\s?\\(?k\\)?\\b",
+        "\\bIRA\\b",
+        "\\bRoth\\b",
+        "\\bISA\\b",
+        "\\b403\\s?\\(?b\\)?\\b",
+        "\\bemployer match\\w*\\b",
+        "\\bSocial Security (?:benefits?|check|income)\\b"
+      ]
+    },
+    {
+      "id": "credit.emergency_fund_months",
+      "category": "credit_finance",
+      "label": "The 3-6 month emergency fund rule, unqualified",
+      "triggers": [
+        "\\b(?:three|3|six|6|3\\s*(?:-|to|–)\\s*6|three\\s*(?:-|to|–)\\s*six)\\s*months?\\D{0,30}\\b(?:expenses|emergency fund|savings|living costs)\\b",
+        "\\bemergency fund\\b"
+      ]
+    },
+    {
+      "id": "credit.brokerage_index",
+      "category": "credit_finance",
+      "label": "Brokerage / index funds as the default investing vehicle",
+      "triggers": [
+        "\\bindex funds?\\b",
+        "\\bS&P 500\\b",
+        "\\bVanguard\\b",
+        "\\bFidelity\\b",
+        "\\bETFs?\\b",
+        "\\bbrokerage account\\b",
+        "\\bmutual funds?\\b",
+        "\\brobo-?advis\\w+\\b"
+      ]
+    },
+    {
+      "id": "emp.written_contract",
+      "category": "employment",
+      "label": "A written, enforceable employment contract is standard",
+      "triggers": [
+        "\\bemployment contract\\b",
+        "\\bwritten contract\\b",
+        "\\byour contract\\b",
+        "\\bcontract terms\\b",
+        "\\boffer letter\\b"
+      ]
+    },
+    {
+      "id": "emp.at_will",
+      "category": "employment",
+      "label": "At-will employment",
+      "triggers": [
+        "\\bat-?will\\b",
+        "\\bterminate (?:you|your employment) at any time\\b",
+        "\\bwithout cause\\b"
+      ]
+    },
+    {
+      "id": "emp.hr_department",
+      "category": "employment",
+      "label": "A functioning HR department exists and can be relied on",
+      "triggers": [
+        "\\bHR\\b",
+        "\\bhuman resources\\b",
+        "\\bpeople (?:team|ops|operations)\\b",
+        "\\bHRBP\\b",
+        "\\bexit interview\\b"
+      ]
+    },
+    {
+      "id": "emp.two_weeks_notice",
+      "category": "employment",
+      "label": "Two weeks' notice as the resignation norm",
+      "triggers": [
+        "\\btwo weeks'? notice\\b",
+        "\\b2 weeks'? notice\\b",
+        "\\bstandard notice period\\b",
+        "\\bcustomary\\D{0,20}notice\\b"
+      ]
+    },
+    {
+      "id": "emp.severance",
+      "category": "employment",
+      "label": "Severance as a normal entitlement",
+      "triggers": [
+        "\\bseverance\\b",
+        "\\bredundancy pay\\b",
+        "\\bexit package\\b",
+        "\\bgarden leave\\b"
+      ]
+    },
+    {
+      "id": "emp.public_postings",
+      "category": "employment",
+      "label": "Jobs are found through public postings",
+      "triggers": [
+        "\\bLinkedIn\\b",
+        "\\bIndeed\\b",
+        "\\bGlassdoor\\b",
+        "\\bjob boards?\\b",
+        "\\bjob postings?\\b",
+        "\\bapply online\\b",
+        "\\bATS\\b",
+        "\\brecruiters? (?:will|reach)\\b"
+      ]
+    },
+    {
+      "id": "emp.unemployment_benefits",
+      "category": "employment",
+      "label": "Unemployment insurance / benefits",
+      "triggers": [
+        "\\bunemployment (?:benefits?|insurance|claim)\\b",
+        "\\bjobseeker'?s? allowance\\b",
+        "\\bfile for unemployment\\b"
+      ]
+    },
+    {
+      "id": "emp.health_coverage_tied",
+      "category": "employment",
+      "label": "Health coverage is tied to employment and continues after exit",
+      "triggers": [
+        "\\bCOBRA\\b",
+        "\\bhealth (?:insurance|coverage|benefits?)\\D{0,40}\\b(?:employer|job|work|company)\\b",
+        "\\b(?:employer|company|workplace)\\D{0,30}\\bhealth (?:insurance|coverage|plan)\\b"
+      ]
+    },
+    {
+      "id": "emp.pto_accrual",
+      "category": "employment",
+      "label": "Accrued paid leave is tracked and paid out",
+      "triggers": [
+        "\\bPTO\\b",
+        "\\bpaid time off\\b",
+        "\\baccrued (?:leave|vacation|days)\\b",
+        "\\bvacation days?\\b",
+        "\\bpaid out\\b"
+      ]
+    },
+    {
+      "id": "emp.reliable_payroll",
+      "category": "employment",
+      "label": "Salary arrives on schedule through payroll",
+      "triggers": [
+        "\\bpay ?cheques?\\b",
+        "\\bpay ?checks?\\b",
+        "\\bpayroll\\b",
+        "\\bfinal pay ?(?:cheque|check)\\b",
+        "\\bnext pay period\\b",
+        "\\bpay stub\\b",
+        "\\bW-?2\\b",
+        "\\b1099\\b"
+      ]
+    },
+    {
+      "id": "house.monthly_rent",
+      "category": "housing",
+      "label": "Rent is paid monthly",
+      "triggers": [
+        "\\bmonthly rent\\b",
+        "\\brent (?:each|every|per) month\\b",
+        "\\brent is due\\b",
+        "\\bmonth'?s rent\\b",
+        "\\brent payments?\\b",
+        "\\brent\\w*\\b[^.!?\\n]{0,25}\\bmonthly\\b",
+        "\\bmonthly\\b[^.!?\\n]{0,25}\\brent\\w*\\b"
+      ]
+    },
+    {
+      "id": "house.deposit_1_2_months",
+      "category": "housing",
+      "label": "A security deposit of one to two months",
+      "triggers": [
+        "\\bsecurity deposit\\b",
+        "\\bdamage deposit\\b",
+        "\\b(?:one|two|1|2)\\D{0,15}months?'? (?:rent as a )?deposit\\b"
+      ]
+    },
+    {
+      "id": "house.formal_lease",
+      "category": "housing",
+      "label": "A formal written lease with standard protections",
+      "triggers": [
+        "\\blease agreement\\b",
+        "\\byour lease\\b",
+        "\\blease terms?\\b",
+        "\\bsublet\\b",
+        "\\blease break\\w*\\b",
+        "\\bbreak (?:your|the) lease\\b"
+      ]
+    },
+    {
+      "id": "house.tenant_dispute_body",
+      "category": "housing",
+      "label": "Accessible landlord-tenant dispute resolution",
+      "triggers": [
+        "\\btenants?'? rights?\\b",
+        "\\btenancy board\\b",
+        "\\bhousing (?:authority|tribunal|court)\\b",
+        "\\blandlord-?tenant (?:board|court|law|dispute)\\b",
+        "\\brent control\\b"
+      ]
+    },
+    {
+      "id": "house.credit_check_rental",
+      "category": "housing",
+      "label": "The landlord runs credit / reference / background checks",
+      "triggers": [
+        "\\bbackground check\\b",
+        "\\breference check\\b",
+        "\\brental history\\b",
+        "\\bcredit check\\b",
+        "\\bproof of income\\b",
+        "\\bco-?signer\\b",
+        "\\bguarantor\\b"
+      ]
+    },
+    {
+      "id": "house.renters_insurance",
+      "category": "housing",
+      "label": "Renters insurance is normal",
+      "triggers": [
+        "\\brenters'? insurance\\b",
+        "\\bcontents insurance\\b",
+        "\\bhome insurance\\b"
+      ]
+    },
+    {
+      "id": "house.30pct_income",
+      "category": "housing",
+      "label": "The 30%-of-income rent rule",
+      "triggers": [
+        "\\b(?:30|thirty)\\s?%\\D{0,30}\\b(?:income|salary|pay)\\b",
+        "\\b(?:income|salary|pay)\\D{0,30}\\b(?:30|thirty)\\s?%\\b"
+      ]
+    },
+    {
+      "id": "health.employer_insurance",
+      "category": "healthcare",
+      "label": "Employer-provided health insurance",
+      "triggers": [
+        "\\bemployer-?(?:provided|sponsored)\\b",
+        "\\bgroup health plan\\b",
+        "\\bopen enrollment\\b",
+        "\\bACA\\b",
+        "\\bmarketplace plan\\b",
+        "\\bMedicaid\\b",
+        "\\bMedicare\\b"
+      ]
+    },
+    {
+      "id": "health.insurance_mediates",
+      "category": "healthcare",
+      "label": "Insurance mediates access to care",
+      "triggers": [
+        "\\bco-?pay\\w*\\b",
+        "\\bdeductible\\b",
+        "\\bin-?network\\b",
+        "\\bout-?of-?network\\b",
+        "\\bpre-?authorization\\b",
+        "\\bclaims? (?:form|process|submit)\\w*\\b",
+        "\\bcoinsurance\\b",
+        "\\byour insurance (?:will|should|may|might|covers?)\\b"
+      ]
+    },
+    {
+      "id": "health.pcp_gatekeeper",
+      "category": "healthcare",
+      "label": "A primary care physician is the entry point",
+      "triggers": [
+        "\\bprimary care (?:physician|provider|doctor)\\b",
+        "\\bPCP\\b",
+        "\\bGP\\b",
+        "\\byour (?:regular )?doctor\\b",
+        "\\bfamily (?:doctor|physician)\\b",
+        "\\breferral (?:to|from) a specialist\\b"
+      ]
+    },
+    {
+      "id": "health.appointment_system",
+      "category": "healthcare",
+      "label": "Care is accessed by booking an appointment",
+      "triggers": [
+        "\\bbook an appointment\\b",
+        "\\bschedule an appointment\\b",
+        "\\bmake an appointment\\b",
+        "\\bpatient portal\\b",
+        "\\bappointment slots?\\b"
+      ]
+    },
+    {
+      "id": "health.prescription_required",
+      "category": "healthcare",
+      "label": "Pharmacy access is gated by prescription",
+      "triggers": [
+        "\\bprescription\\b",
+        "\\brefill\\b",
+        "\\bpharmacist will\\b",
+        "\\bover-?the-?counter\\b"
+      ]
+    },
+    {
+      "id": "health.emergency_services",
+      "category": "healthcare",
+      "label": "A responsive emergency service exists",
+      "triggers": [
+        "\\b911\\b",
+        "\\b999\\b",
+        "\\bcall an ambulance\\b",
+        "\\bemergency services\\b",
+        "\\bER\\b",
+        "\\bemergency room\\b",
+        "\\bA&E\\b"
+      ]
+    },
+    {
+      "id": "pay.p2p_apps",
+      "category": "payments",
+      "label": "US/Western peer-to-peer payment apps",
+      "triggers": [
+        "\\bVenmo\\b",
+        "\\bZelle\\b",
+        "\\bCash ?App\\b",
+        "\\bPayPal\\b",
+        "\\bApple Pay\\b",
+        "\\bGoogle Pay\\b",
+        "\\bWise\\b",
+        "\\bRevolut\\b"
+      ]
+    },
+    {
+      "id": "pay.direct_deposit",
+      "category": "payments",
+      "label": "Direct deposit / ACH / wire as the normal rail",
+      "triggers": [
+        "\\bdirect deposit\\b",
+        "\\bACH\\b",
+        "\\bwire transfers?\\b",
+        "\\brouting number\\b",
+        "\\bIBAN\\b",
+        "\\bSWIFT\\b",
+        "\\bstanding order\\b",
+        "\\bdirect debit\\b"
+      ]
+    },
+    {
+      "id": "pay.card_ubiquity",
+      "category": "payments",
+      "label": "Cards are accepted essentially everywhere",
+      "triggers": [
+        "\\bdebit cards?\\b",
+        "\\btap to pay\\b",
+        "\\bcontactless\\b",
+        "\\bswipe your card\\b",
+        "\\bcard on file\\b",
+        "\\bautopay\\b",
+        "\\bauto-?pay\\b"
+      ]
+    },
+    {
+      "id": "pay.chargeback",
+      "category": "payments",
+      "label": "Chargeback / bank dispute rights are usable",
+      "triggers": [
+        "\\bcharge ?backs?\\b",
+        "\\bdispute the charge\\b",
+        "\\bdispute it with your bank\\b",
+        "\\bfraud protection\\b",
+        "\\bpurchase protection\\b",
+        "\\bSection 75\\b"
+      ]
+    },
+    {
+      "id": "pay.cheques",
+      "category": "payments",
+      "label": "Cheques are a normal instrument",
+      "triggers": [
+        "\\bwrite a (?:check|cheque)\\b",
+        "\\bpersonal (?:check|cheque)\\b",
+        "\\bcashier'?s (?:check|cheque)\\b",
+        "\\bmoney order\\b"
+      ]
+    },
+    {
+      "id": "pay.card_rewards",
+      "category": "payments",
+      "label": "Rewards/points optimization is a live consideration",
+      "triggers": [
+        "\\bcash ?back\\b",
+        "\\brewards? points?\\b",
+        "\\bmiles\\b",
+        "\\bsign-?up bonus\\b"
+      ]
+    },
+    {
+      "id": "log.multiday_delivery",
+      "category": "logistics",
+      "label": "Reliable multi-day / next-day delivery",
+      "triggers": [
+        "\\btwo-?day (?:shipping|delivery)\\b",
+        "\\bnext-?day (?:shipping|delivery)\\b",
+        "\\bfree shipping\\b",
+        "\\bPrime\\b",
+        "\\btracking number\\b",
+        "\\bUPS\\b",
+        "\\bFedEx\\b",
+        "\\bUSPS\\b",
+        "\\bRoyal Mail\\b"
+      ]
+    },
+    {
+      "id": "log.postal_address",
+      "category": "logistics",
+      "label": "Reliable street addressing and mail delivery",
+      "triggers": [
+        "\\bmailing address\\b",
+        "\\bin the mail\\b",
+        "\\bmailed to you\\b",
+        "\\bpost(?:ed)? to your address\\b",
+        "\\bZIP code\\b",
+        "\\bpostcode\\b",
+        "\\bmail ?box\\b",
+        "\\bcertified mail\\b"
+      ]
+    },
+    {
+      "id": "log.returns_policy",
+      "category": "logistics",
+      "label": "Returns and refunds are a default consumer right",
+      "triggers": [
+        "\\breturn polic\\w+\\b",
+        "\\breturn window\\b",
+        "\\b(?:14|30|60|90)-?day returns?\\b",
+        "\\bfull refund\\b",
+        "\\bmoney-?back guarantee\\b",
+        "\\breturn it for a refund\\b",
+        "\\bno-?questions-?asked\\b"
+      ]
+    },
+    {
+      "id": "infra.grid_power",
+      "category": "infrastructure",
+      "label": "Uninterrupted mains electricity is assumed",
+      "triggers": [
+        "\\bplug it in\\b",
+        "\\bkeep it charged\\b",
+        "\\belectricity bill\\b",
+        "\\butility bill\\b",
+        "\\bpower outage\\w*\\b",
+        "\\bleave it running\\b",
+        "\\bplugged in overnight\\b"
+      ]
+    },
+    {
+      "id": "infra.fixed_broadband",
+      "category": "infrastructure",
+      "label": "Reliable fixed broadband is assumed",
+      "triggers": [
+        "\\bbroadband\\b",
+        "\\bwi-?fi\\b",
+        "\\bhome internet\\b",
+        "\\bfibre\\b",
+        "\\bfiber\\b",
+        "\\binternet plan\\b",
+        "\\bunlimited data\\b",
+        "\\bstream\\w*\\b"
+      ]
+    },
+    {
+      "id": "infra.municipal_water",
+      "category": "infrastructure",
+      "label": "Piped municipal water is assumed",
+      "triggers": [
+        "\\btap water\\b",
+        "\\bwater bill\\b",
+        "\\bmunicipal water\\b",
+        "\\bwater utility\\b",
+        "\\bwater company\\b"
+      ]
+    },
+    {
+      "id": "infra.public_transit",
+      "category": "infrastructure",
+      "label": "A functioning public transit system is an option",
+      "triggers": [
+        "\\bpublic transit\\b",
+        "\\bpublic transport\\w*\\b",
+        "\\bsubway\\b",
+        "\\bmetro\\b",
+        "\\btransit pass\\b",
+        "\\bcommuter rail\\b",
+        "\\bthe bus schedule\\b"
+      ]
+    },
+    {
+      "id": "state.small_claims",
+      "category": "state_legal",
+      "label": "Small claims court is a usable remedy",
+      "triggers": [
+        "\\bsmall claims\\b",
+        "\\bfile a (?:claim|suit|case) in court\\b",
+        "\\btake (?:them|him|her) to court\\b",
+        "\\bsue (?:them|him|her|the)\\b"
+      ]
+    },
+    {
+      "id": "state.regulator_responds",
+      "category": "state_legal",
+      "label": "A regulator or ombudsman will act on a complaint",
+      "triggers": [
+        "\\bfile a complaint with\\b",
+        "\\bombuds\\w+\\b",
+        "\\bCFPB\\b",
+        "\\bFTC\\b",
+        "\\bBetter Business Bureau\\b",
+        "\\bBBB\\b",
+        "\\bregulator\\w*\\b",
+        "\\bconsumer protection agency\\b",
+        "\\bFCA\\b",
+        "\\bTrading Standards\\b"
+      ]
+    },
+    {
+      "id": "state.public_records",
+      "category": "state_legal",
+      "label": "Public records are searchable and accessible",
+      "triggers": [
+        "\\bpublic records?\\b",
+        "\\bland registry\\b",
+        "\\btitle search\\b",
+        "\\bcounty (?:clerk|recorder)\\b",
+        "\\bFOIA\\b",
+        "\\bcompanies house\\b"
+      ]
+    },
+    {
+      "id": "state.standard_id",
+      "category": "state_legal",
+      "label": "US/UK-style identity and tax infrastructure",
+      "triggers": [
+        "\\bSSN\\b",
+        "\\bsocial security number\\b",
+        "\\bDMV\\b",
+        "\\bIRS\\b",
+        "\\bHMRC\\b",
+        "\\bNational Insurance number\\b",
+        "\\bdriver'?s license\\b",
+        "\\bW-?9\\b",
+        "\\bFAFSA\\b"
+      ]
+    },
+    {
+      "id": "state.online_gov_service",
+      "category": "state_legal",
+      "label": "Government processes complete online end to end",
+      "triggers": [
+        "\\bapply online\\b",
+        "\\bgovernment (?:portal|website)\\b",
+        "\\bonline (?:application|renewal)\\b",
+        "\\bdownload the form from\\b",
+        "\\bsubmit (?:it )?electronically\\b",
+        "\\b\\.gov\\b",
+        "\\bgov\\.uk\\b"
+      ]
+    },
+    {
+      "id": "state.legal_aid",
+      "category": "state_legal",
+      "label": "A lawyer or legal aid is accessible and affordable",
+      "triggers": [
+        "\\bconsult (?:a|an|your) (?:lawyer|attorney|solicitor)\\b",
+        "\\blegal aid\\b",
+        "\\bfree legal (?:advice|clinic)\\b",
+        "\\bemployment lawyer\\b",
+        "\\bpro bono\\b"
+      ]
+    }
+  ]
+}

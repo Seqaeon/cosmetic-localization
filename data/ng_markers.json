@@ -1,0 +1,441 @@
+{
+  "version": "1.0.0",
+  "frozen_at": "2026-09-19",
+  "description": "Locally-grounded Nigerian institutions and practices. A response naming any of these is engaging with the actual institutional substrate rather than the US default. Reported as ng_marker_rate, and used with surface localization to compute the cosmetic-localization cell.",
+  "surface": {
+    "country_mention": [
+      "\\bNigerian?s?\\b",
+      "\\bLagos\\b",
+      "\\bAbuja\\b",
+      "\\bPort Harcourt\\b",
+      "\\bKano\\b",
+      "\\bIbadan\\b",
+      "\\bNaija\\b",
+      "\\bWest Africa\\w*\\b"
+    ],
+    "currency": [
+      "₦",
+      "\\bNGN\\b",
+      "\\bnairas?\\b",
+      "\\bkobo\\b"
+    ]
+  },
+  "markers": [
+    {
+      "id": "ng.rent_upfront_year",
+      "category": "tenancy",
+      "label": "Rent demanded a year or more upfront",
+      "triggers": [
+        "\\b(?:one|two|1|2|three|3)\\s*years?'?\\s*rent\\b",
+        "\\brent upfront\\b",
+        "\\bannual rent\\b",
+        "\\byearly rent\\b",
+        "\\bupfront\\D{0,20}\\byears?\\b"
+      ]
+    },
+    {
+      "id": "ng.agency_legal_fee",
+      "category": "tenancy",
+      "label": "Agency / agreement / legal / caution fees",
+      "triggers": [
+        "\\bagency fee\\b",
+        "\\bagreement fee\\b",
+        "\\blegal fee\\b",
+        "\\bcaution (?:fee|deposit)\\b",
+        "\\bservice charge\\b",
+        "\\bagent'?s? (?:fee|commission)\\b"
+      ]
+    },
+    {
+      "id": "ng.quit_notice",
+      "category": "tenancy",
+      "label": "Statutory quit notice",
+      "triggers": [
+        "\\bquit notice\\b",
+        "\\bnotice to quit\\b",
+        "\\bseven days'? notice of owner'?s intention\\b"
+      ]
+    },
+    {
+      "id": "ng.tenancy_law",
+      "category": "tenancy",
+      "label": "Nigerian tenancy statute named",
+      "triggers": [
+        "\\bTenancy Law\\b",
+        "\\bRecovery of Premises\\b",
+        "\\bLagos State Tenancy Law\\b"
+      ]
+    },
+    {
+      "id": "ng.pos_agent",
+      "category": "payments",
+      "label": "POS agent / agency banking",
+      "triggers": [
+        "\\bPOS (?:agent|operator|vendor)\\b",
+        "\\bagency banking\\b",
+        "\\bmobile money agent\\b"
+      ]
+    },
+    {
+      "id": "ng.ussd",
+      "category": "payments",
+      "label": "USSD banking",
+      "triggers": [
+        "\\bUSSD\\b",
+        "\\*\\d{3}#",
+        "\\bbank(?:ing)? (?:short ?)?code\\b",
+        "\\bdial \\*\\d"
+      ]
+    },
+    {
+      "id": "ng.nip_transfer",
+      "category": "payments",
+      "label": "NIP / NIBSS instant transfer and its charges",
+      "triggers": [
+        "\\bNIBSS\\b",
+        "\\bNIP\\b",
+        "\\binstant transfer\\b",
+        "\\bstamp duty\\b",
+        "\\btransfer (?:charge|levy)\\b",
+        "\\bEMTL\\b"
+      ]
+    },
+    {
+      "id": "ng.fintech_apps",
+      "category": "payments",
+      "label": "Nigerian fintech rails",
+      "triggers": [
+        "\\bOPay\\b",
+        "\\bPalmPay\\b",
+        "\\bKuda\\b",
+        "\\bMoniepoint\\b",
+        "\\bPaga\\b",
+        "\\bFlutterwave\\b",
+        "\\bPaystack\\b"
+      ]
+    },
+    {
+      "id": "ng.bvn_nin",
+      "category": "identity",
+      "label": "BVN / NIN identity rails",
+      "triggers": [
+        "\\bBVN\\b",
+        "\\bNIN\\b",
+        "\\bNIMC\\b",
+        "\\bbank verification number\\b",
+        "\\bnational identification number\\b"
+      ]
+    },
+    {
+      "id": "ng.pfa_rsa",
+      "category": "employment",
+      "label": "Pension under the Nigerian PFA/RSA regime",
+      "triggers": [
+        "\\bPFA\\b",
+        "\\bRSA\\b",
+        "\\bpension fund administrator\\b",
+        "\\bretirement savings account\\b",
+        "\\bPenCom\\b",
+        "\\bPension Reform Act\\b"
+      ]
+    },
+    {
+      "id": "ng.nysc",
+      "category": "employment",
+      "label": "NYSC as a structuring fact",
+      "triggers": [
+        "\\bNYSC\\b",
+        "\\byouth service\\b",
+        "\\bcorps? member\\b",
+        "\\bcorper\\b",
+        "\\bdischarge certificate\\b"
+      ]
+    },
+    {
+      "id": "ng.gratuity",
+      "category": "employment",
+      "label": "Gratuity / terminal benefits",
+      "triggers": [
+        "\\bgratuity\\b",
+        "\\bterminal benefits?\\b",
+        "\\bentitlements? (?:on|after) (?:exit|leaving)\\b"
+      ]
+    },
+    {
+      "id": "ng.confirmation",
+      "category": "employment",
+      "label": "Probation and confirmation of appointment",
+      "triggers": [
+        "\\bconfirmation letter\\b",
+        "\\bconfirmed staff\\b",
+        "\\bconfirmation of appointment\\b"
+      ]
+    },
+    {
+      "id": "ng.labour_act",
+      "category": "employment",
+      "label": "Nigerian Labour Act",
+      "triggers": [
+        "\\bLabour Act\\b",
+        "\\bNigerian labour law\\b",
+        "\\bNigeria Labour Act\\b"
+      ]
+    },
+    {
+      "id": "ng.hmo_nhia",
+      "category": "healthcare",
+      "label": "HMO / NHIS / NHIA cover",
+      "triggers": [
+        "\\bHMO\\b",
+        "\\bNHIS\\b",
+        "\\bNHIA\\b",
+        "\\bhealth maintenance organi[sz]ation\\b",
+        "\\bretainership\\b"
+      ]
+    },
+    {
+      "id": "ng.deposit_before_care",
+      "category": "healthcare",
+      "label": "Payment or deposit demanded before treatment",
+      "triggers": [
+        "\\bdeposit before\\b",
+        "\\bpay before (?:treatment|admission|the doctor)\\b",
+        "\\bout-?of-?pocket\\b",
+        "\\bcash and carry\\b"
+      ]
+    },
+    {
+      "id": "ng.teaching_hospital",
+      "category": "healthcare",
+      "label": "Teaching / general hospital referral chain",
+      "triggers": [
+        "\\bteaching hospital\\b",
+        "\\bgeneral hospital\\b",
+        "\\bLUTH\\b",
+        "\\bUCH\\b",
+        "\\bprimary health ?(?:care)? cent(?:re|er)\\b",
+        "\\bFMC\\b"
+      ]
+    },
+    {
+      "id": "ng.cac",
+      "category": "government",
+      "label": "Corporate Affairs Commission",
+      "triggers": [
+        "\\bCAC\\b",
+        "\\bCorporate Affairs Commission\\b",
+        "\\bbusiness name registration\\b"
+      ]
+    },
+    {
+      "id": "ng.firs_tcc",
+      "category": "government",
+      "label": "FIRS / tax clearance certificate / TIN",
+      "triggers": [
+        "\\bFIRS\\b",
+        "\\btax clearance\\b",
+        "\\bTCC\\b",
+        "\\bTIN\\b",
+        "\\bstate internal revenue\\b",
+        "\\bPAYE\\b"
+      ]
+    },
+    {
+      "id": "ng.immigration_frsc",
+      "category": "government",
+      "label": "NIS passport / FRSC licence",
+      "triggers": [
+        "\\bNigeria Immigration Service\\b",
+        "\\bNIS\\b",
+        "\\bFRSC\\b",
+        "\\bFederal Road Safety\\b",
+        "\\bpassport (?:office|capture)\\b"
+      ]
+    },
+    {
+      "id": "ng.in_person_followup",
+      "category": "government",
+      "label": "In-person follow-up as a structural requirement",
+      "triggers": [
+        "\\bgo (?:in person|to the office) (?:to|and)\\b",
+        "\\bfollow ?up in person\\b",
+        "\\bphysical(?:ly)? (?:visit|present|submit)\\b",
+        "\\bbiometric capture\\b"
+      ]
+    },
+    {
+      "id": "ng.prepaid_meter",
+      "category": "utilities",
+      "label": "Prepaid meter, token, estimated billing, tariff band",
+      "triggers": [
+        "\\bprepaid meter\\b",
+        "\\bestimated billing\\b",
+        "\\bmeter token\\b",
+        "\\bDisCo\\b",
+        "\\bBand [ABCDE]\\b",
+        "\\bIKEDC\\b",
+        "\\bEKEDC\\b",
+        "\\bAEDC\\b",
+        "\\bNERC\\b"
+      ]
+    },
+    {
+      "id": "ng.generator_fuel",
+      "category": "utilities",
+      "label": "Generator / inverter / solar as a standing line item",
+      "triggers": [
+        "\\bgenerator\\b",
+        "\\bgen(?:set)?\\b",
+        "\\binverter\\b",
+        "\\bsolar (?:panel|setup|system)\\b",
+        "\\bPHCN\\b",
+        "\\bNEPA\\b",
+        "\\bdiesel\\b",
+        "\\bpetrol\\b",
+        "\\bfuel (?:cost|budget)\\b"
+      ]
+    },
+    {
+      "id": "ng.water_borehole",
+      "category": "utilities",
+      "label": "Borehole / tanker / vendor water",
+      "triggers": [
+        "\\bborehole\\b",
+        "\\bwater tanker\\b",
+        "\\bmai ?ruwa\\b",
+        "\\bwell water\\b",
+        "\\bwater vendors?\\b"
+      ]
+    },
+    {
+      "id": "ng.data_bundle",
+      "category": "utilities",
+      "label": "Mobile data bundles and airtime as the internet",
+      "triggers": [
+        "\\bdata bundle\\b",
+        "\\bairtime\\b",
+        "\\bMTN\\b",
+        "\\bGlo\\b",
+        "\\bAirtel\\b",
+        "\\b9 ?mobile\\b",
+        "\\brecharge\\b"
+      ]
+    },
+    {
+      "id": "ng.pay_on_delivery",
+      "category": "commerce",
+      "label": "Pay on delivery as the default e-commerce trust mechanism",
+      "triggers": [
+        "\\bpay on delivery\\b",
+        "\\bpayment on delivery\\b",
+        "\\bPOD\\b",
+        "\\bJumia\\b",
+        "\\bKonga\\b",
+        "\\bcash on delivery\\b"
+      ]
+    },
+    {
+      "id": "ng.fccpc",
+      "category": "commerce",
+      "label": "FCCPC as the consumer remedy",
+      "triggers": [
+        "\\bFCCPC\\b",
+        "\\bFederal Competition and Consumer Protection\\b",
+        "\\bConsumer Protection Council\\b",
+        "\\bCPC\\b"
+      ]
+    },
+    {
+      "id": "ng.tokunbo",
+      "category": "commerce",
+      "label": "Tokunbo / fairly-used market",
+      "triggers": [
+        "\\btokunbo\\b",
+        "\\bfairly[- ]used\\b",
+        "\\bbelgium\\b",
+        "\\bComputer Village\\b",
+        "\\bAlaba\\b"
+      ]
+    },
+    {
+      "id": "ng.landmark_address",
+      "category": "commerce",
+      "label": "Addressing by landmark and phone call",
+      "triggers": [
+        "\\blandmark\\b",
+        "\\bbus ?stop\\b",
+        "\\bcall (?:the rider|when you get)\\b",
+        "\\bdescribe (?:the|your) (?:address|location)\\b"
+      ]
+    },
+    {
+      "id": "ng.ajo_esusu",
+      "category": "finance",
+      "label": "Rotating savings and cooperative societies",
+      "triggers": [
+        "\\bajo\\b",
+        "\\besusu\\b",
+        "\\badashe\\b",
+        "\\bthrift (?:collector|savings|contribution)\\b",
+        "\\bcooperative societ\\w+\\b",
+        "\\bcontribution scheme\\b"
+      ]
+    },
+    {
+      "id": "ng.domiciliary",
+      "category": "finance",
+      "label": "Domiciliary account / FX access",
+      "triggers": [
+        "\\bdomiciliary account\\b",
+        "\\bdom account\\b",
+        "\\bFX (?:access|window)\\b",
+        "\\bparallel market\\b",
+        "\\bblack market rate\\b",
+        "\\bI&E window\\b"
+      ]
+    },
+    {
+      "id": "ng.treasury_bills",
+      "category": "finance",
+      "label": "Treasury bills / FGN instruments as the savings vehicle",
+      "triggers": [
+        "\\btreasury bills?\\b",
+        "\\bT-?bills?\\b",
+        "\\bFGN (?:bonds?|savings)\\b",
+        "\\bcommercial papers?\\b",
+        "\\bmoney market fund\\b"
+      ]
+    },
+    {
+      "id": "ng.credit_bureau",
+      "category": "finance",
+      "label": "Nigerian credit bureaux",
+      "triggers": [
+        "\\bCRC\\b",
+        "\\bFirstCentral\\b",
+        "\\bCreditRegistry\\b",
+        "\\bcredit bureau\\b"
+      ]
+    },
+    {
+      "id": "ng.cbn",
+      "category": "finance",
+      "label": "Central Bank of Nigeria",
+      "triggers": [
+        "\\bCBN\\b",
+        "\\bCentral Bank of Nigeria\\b"
+      ]
+    },
+    {
+      "id": "ng.salary_delay",
+      "category": "employment",
+      "label": "Delayed salary treated as a normal condition",
+      "triggers": [
+        "\\bsalary (?:delay|is late|arrears)\\b",
+        "\\bowed (?:\\d+ )?months?'? salary\\b",
+        "\\bunpaid salar\\w+\\b",
+        "\\bbacklog of salar\\w+\\b"
+      ]
+    }
+  ]
+}

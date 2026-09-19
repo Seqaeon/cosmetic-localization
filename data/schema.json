@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://huggingface.co/datasets/cosmetic-localization/schema.json",
+  "title": "Cosmetic localization evaluation item",
+  "description": "One authored source item. The matched US variant is materialized from us_swap by build/render_prompts.py and is never authored twice.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "pair_id",
+    "domain",
+    "locale",
+    "archetype",
+    "prompt_bare",
+    "prompt_localized_explicit",
+    "prompt_knowledge",
+    "correction_true",
+    "correction_false",
+    "correction_false_rationale",
+    "ground_truth",
+    "gt_tier",
+    "gt_source",
+    "law_practice_divergence",
+    "expected_flags",
+    "expected_ng_markers",
+    "author"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]{3,4}_[0-9]{3}(_us)?$"
+    },
+    "pair_id": {
+      "type": "string",
+      "pattern": "^[a-z]{3,4}_[0-9]{3}$"
+    },
+    "domain": {
+      "enum": [
+        "employment",
+        "tenancy",
+        "finance",
+        "payments",
+        "healthcare",
+        "government",
+        "utilities",
+        "commerce"
+      ]
+    },
+    "locale": {
+      "enum": [
+        "NG",
+        "KE",
+        "IN",
+        "PH",
+        "US"
+      ]
+    },
+    "archetype": {
+      "description": "Who is asking. Fixed vocabulary so the set can be checked for coverage rather than accidentally stacking one kind of asker.",
+      "enum": [
+        "first_time_navigator",
+        "planning_ahead",
+        "mid_crisis",
+        "comparing_options",
+        "disputing_an_outcome",
+        "helping_someone_else"
+      ]
+    },
+    "prompt_bare": {
+      "type": "string",
+      "minLength": 20,
+      "description": "C1. No locale signal of any kind. Establishes the model's default world. Shared by both variants of the pair."
+    },
+    "prompt_localized_explicit": {
+      "type": "string",
+      "minLength": 20,
+      "description": "C2. Identical situation, country stated outright."
+    },
+    "prompt_localized_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system",
+        "user"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        }
+      },
+      "description": "C2 variant: locale carried in the system prompt instead of the user turn. Signalling sub-study only."
+    },
+    "prompt_localized_implicit": {
+      "type": "string",
+      "minLength": 20,
+      "description": "C2 variant: local currency, institution names and terminology, country never named. Signalling sub-study only."
+    },
+    "prompt_knowledge": {
+      "type": "string",
+      "minLength": 20,
+      "description": "C3. The same underlying fact asked directly as a factual question. This is what separates absent knowledge from inert knowledge, so it must target the SAME fact the advice would need."
+    },
+    "correction_true": {
+      "type": "string",
+      "minLength": 20,
+      "description": "C4-true. A correct statement of local practice contradicting the model's likely C2 answer."
+    },
+    "correction_false": {
+      "type": "string",
+      "minLength": 20,
+      "description": "C4-false. Plausible but invented, contradicting the model's likely C2 answer in a DIFFERENT direction from correction_true. Never absurd -- an easy strawman proves nothing."
+    },
+    "correction_false_rationale": {
+      "type": "string",
+      "minLength": 10,
+      "description": "How the falsehood was constructed, so a reader can audit that these are not strawmen. E.g. 'number changed: 12 months -> 3 months'."
+    },
+    "ground_truth": {
+      "type": "string",
+      "minLength": 20
+    },
+    "gt_tier": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4,
+      "description": "1 statute/regulation, 2 institutional documentation, 3 observable market data, 4 practitioner knowledge. Headline numbers are recomputed on the tier 1-2 subset as a robustness check."
+    },
+    "gt_source": {
+      "type": "string",
+      "minLength": 3
+    },
+    "gt_date": {
+      "type": "string",
+      "description": "Required for tier 3; market data moves."
+    },
+    "law_practice_divergence": {
+      "type": "boolean",
+      "description": "True where the statute says one thing and actual practice is another. A model reciting the statute is not wrong in the way a benchmark measures, and is useless in the way that matters."
+    },
+    "expected_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Pre-registered prediction: which checklist flags a US-defaulted answer to this item would trip. Written before any run."
+    },
+    "expected_ng_markers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Pre-registered: which local institutions a genuinely grounded answer would name."
+    },
+    "us_swap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replace"
+      ],
+      "properties": {
+        "replace": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Literal substitutions applied to every prompt field to produce the US variant. Keep it to locale tokens: place, currency, institution name."
+        },
+        "overrides": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Fields needing a full rewrite rather than substitution -- knowledge probe, corrections, ground truth, expected_flags."
+        }
+      }
+    },
+    "author": {
+      "enum": [
+        "human",
+        "draft"
+      ],
+      "description": "'draft' is a Phase-0 gate instrument only and can never enter the released dataset. validate_items.py --release rejects it."
+    },
+    "notes": {
+      "type": "string"
+    },
+    "in_signalling_substudy": {
+      "type": "boolean"
+    },
+    "in_us_correction_subset": {
+      "type": "boolean"
+    },
+    "in_frontier_spotcheck": {
+      "type": "boolean"
+    },
+    "derived_from": {
+      "type": "string",
+      "description": "Set on a materialized US variant: the id of the authored source item it was derived from."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "locale": {
+            "const": "US"
+          }
+        },
+        "required": [
+          "locale"
+        ]
+      },
+      "then": {
+        "required": [
+          "derived_from"
+        ]
+      },
+      "else": {
+        "required": [
+          "us_swap"
+        ]
+      }
+    }
+  ]
+}
