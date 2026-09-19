@@ -7,9 +7,18 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
-def md(src): return {"cell_type": "markdown", "metadata": {}, "source": src.strip().split("\n")}
+def _lines(src: str) -> list[str]:
+    """nbformat wants each source line to END with a newline (last one optional).
+    Splitting on "\\n" drops them and the whole cell renders as one line."""
+    return src.splitlines(keepends=True)
+
+
+def md(src): return {"cell_type": "markdown", "metadata": {},
+                     "source": _lines(src.strip())}
+
+
 def code(src): return {"cell_type": "code", "execution_count": None, "metadata": {},
-                       "outputs": [], "source": src.strip("\n").split("\n")}
+                       "outputs": [], "source": _lines(src.strip("\n"))}
 
 
 CELLS = [
