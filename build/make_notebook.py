@@ -78,20 +78,17 @@ worthless, so the run refuses to start against an unrecorded version.
 """),
 code("""
 import hashlib
-recorded = {}
 for line in (REPO / "data/INSTRUMENT_HASHES.txt").read_text().splitlines():
     if line.startswith("#") or not line.strip():
         continue
-    name, _, digest = line.split()[0], None, line.split("sha256=")[1]
-    recorded[name] = digest
-
-for name, digest in recorded.items():
-    actual = hashlib.sha256((REPO / "data" / name).read_bytes()).hexdigest()
-    status = "ok" if actual == digest else "MODIFIED"
-    print(f"{status:9s} {name}")
-    assert actual == digest, (
-        f"{name} does not match the frozen hash. If the change is intended, record it in "
-        f"data/CHECKLIST_CHANGELOG.md with a reason and regenerate INSTRUMENT_HASHES.txt.")
+    rel = line.split("path=")[1].split()[0]
+    want = line.split("sha256=")[1].strip()
+    got = hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
+    print(f"{'ok' if got == want else 'MODIFIED':9s} {rel}")
+    assert got == want, (
+        f"{rel} does not match the frozen hash. If the change is intended, record it in "
+        f"data/CHECKLIST_CHANGELOG.md with a reason and regenerate INSTRUMENT_HASHES.txt "
+        f"with build/make_checklist.py.")
 
 !python score/detect.py --self-test
 """),
@@ -117,8 +114,11 @@ if PHASE == "gate":
 else:
     SRC, ITEMS, MANIFEST = "data/items_src.jsonl", "data/items.jsonl", "results/manifest.jsonl"
 
+# Release mode enforces human authorship; the gate items are drafts by construction.
+RELEASE = "" if PHASE == "gate" else "--release"
+
 !python build/render_prompts.py --items {SRC} --out-items {ITEMS} --out-manifest {MANIFEST} --samples {SAMPLES} --seed {SEED}
-!python build/validate_items.py --items {ITEMS} {"" if PHASE == "gate" else "--release"}
+!python build/validate_items.py --items {ITEMS} {RELEASE}
 """),
 
 md("""
@@ -220,10 +220,15 @@ Confirming a highlighted span takes about five seconds. Scoring a response cold 
 about forty. That difference is what makes ~12 hours of scoring finishable instead of ~50.
 """),
 code("""
-!python score/confirm.py --build-queues --detected results/detected_{PHASE}.jsonl --out score/queues
+!python score/confirm.py --build-queues --detected results/detected_{PHASE}.jsonl --items {ITEMS} --out score/queues
 !ls -la score/queues
 """),
 ]
+
+# nbformat 4.5 wants a stable id per cell; without one, validation warns and
+# future versions will reject. Deterministic so regenerating produces no diff.
+for _i, _c in enumerate(CELLS):
+    _c["id"] = f"cell{_i:02d}"
 
 nb = {
     "cells": CELLS,

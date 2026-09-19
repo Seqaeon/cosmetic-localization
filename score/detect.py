@@ -31,22 +31,36 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHECKLIST_PATH = ROOT / "data" / "checklist.json"
 MARKERS_PATH = ROOT / "data" / "ng_markers.json"
 
-# Protect abbreviations that would otherwise be read as sentence ends.
+# Periods that do not end a sentence. Every hit has its "." swapped for a
+# sentinel IN PLACE, one character for one character, so offsets into the
+# original string are preserved by construction rather than by arithmetic.
+# (An earlier version substituted a whole token and silently shifted offsets
+# whenever the token was longer than the text it replaced.)
 _ABBREV = [
-    (r"\bU\.S\.A?\.", "\x01USDOT\x01"), (r"\be\.g\.", "\x01EG\x01"),
-    (r"\bi\.e\.", "\x01IE\x01"), (r"\betc\.", "\x01ETC\x01"),
-    (r"\bvs\.", "\x01VS\x01"), (r"\bMr\.", "\x01MR\x01"),
-    (r"\bMrs\.", "\x01MRS\x01"), (r"\bDr\.", "\x01DR\x01"),
-    (r"\bNo\.", "\x01NO\x01"), (r"\bapprox\.", "\x01APPROX\x01"),
-    (r"\bs\.\s?\d", "\x01SEC\x01"),
+    r"\b(?:U\.S\.A|U\.A\.E|U\.S|U\.K|E\.U)\.",
+    r"\b(?:e\.g|i\.e|cf|viz|etc|vs|approx|est|incl|min|max)\.",
+    r"\b(?:Mr|Mrs|Ms|Dr|Prof|Rev|Hon|St|Ave|Rd|Jr|Sr|Inc|Ltd|Plc|Co)\.",
+    r"\b(?:Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\.",
+    r"\b(?:a\.m|p\.m)\.",
+    # Statute and document references: "s. 11", "ss. 13-16", "Sec. 4", "para. 2".
+    r"\b(?:ss?|Sec|Art|Ch|para|pp|Fig|Vol|Nos?)\.\s*\d",
+    # Numbered and lettered list markers at the start of a line.
+    r"(?m)^[ \t]*\(?\d{1,2}[.)]",
 ]
+_MASK = "\x01"
 
 
 def split_sentences(text: str) -> list[tuple[int, int, str]]:
     """Return (start, end, sentence) triples over the ORIGINAL string offsets."""
-    masked = text
-    for pat, tok in _ABBREV:
-        masked = re.sub(pat, lambda m, t=tok: t + " " * (len(m.group(0)) - len(t)), masked)
+    buf = list(text)
+    for pat in _ABBREV:
+        for m in re.finditer(pat, text):
+            for i in range(m.start(), m.end()):
+                if buf[i] == ".":
+                    buf[i] = _MASK
+    masked = "".join(buf)
+    # Structurally guaranteed now; kept as documentation of the invariant that
+    # every span this function returns must index back into `text` unchanged.
     assert len(masked) == len(text), "masking must preserve offsets"
 
     bounds, start = [], 0
@@ -264,9 +278,49 @@ MARKER_FIXTURES = [
 ]
 
 
+SPLIT_FIXTURES = [
+    ("In the U.S. you would check your credit score first.", 1),
+    # An abbreviation ending a sentence is genuinely ambiguous without a parser:
+    # "in the U.S. Americans pay..." must NOT split, "in the U.S.A. Here it is..."
+    # should. We under-split, deliberately. Merging two sentences lets a contrast
+    # cue in the first excuse a trigger in the second, which resolves `assumed`
+    # to `contrasted` and therefore UNDER-counts flags -- the direction that makes
+    # the headline claim harder to support, not easier. Stage-2 human confirmation
+    # catches the residue.
+    ("That is how it works in the U.S.A. Here it is different.", 1),
+    ("Rents in the U.K. are monthly. Here they are not.", 2),
+    ("See Labour Act s. 11 for the notice ladder.", 1),
+    ("Lagos State Tenancy Law ss. 13-16 set the periods.", 1),
+    ("Try a pharmacy, e.g. a big chain, before a clinic.", 1),
+    ("Bring ID, i.e. your NIN slip, to the office.", 1),
+    ("Budget for rent, agency fees, etc. before you move.", 1),
+    ("Dr. Ade will see you. Bring the referral.", 2),
+    ("It costs approx. 2 years of rent upfront.", 1),
+    ("The flat is 2.5 million naira. That is the asking price.", 2),
+    ("1. Check the meter.\n2. Ask about the borehole.", 2),
+    ("Call before 9 a.m. or after 5 p.m. on weekdays.", 1),
+    ("First point. Second point! Third point? Fourth.", 4),
+]
+
+
 def self_test() -> int:
     det = load_detector()
     failures = []
+
+    # The splitter is scored first, because every downstream span depends on it.
+    for text, want in SPLIT_FIXTURES:
+        try:
+            sents = split_sentences(text)
+        except AssertionError as e:
+            failures.append(f"[splt] {text!r} raised {e}")
+            continue
+        for a, b, sent in sents:
+            if text[a:b] != sent:
+                failures.append(f"[span] offsets do not index back into the source: {text!r}")
+                break
+        if len(sents) != want:
+            got = [s for _, _, s in sents]
+            failures.append(f"[splt] {text!r} -> {len(sents)} sentences, expected {want}: {got}")
     for text, fid, expected in FIXTURES:
         got = {h.polarity for h in det.detect(text) if h.kind == "flag" and h.id == fid}
         if expected is None:
@@ -291,7 +345,7 @@ def self_test() -> int:
     if s2["cosmetic"]:
         failures.append(f"[cell] cosmetic cell fired on a locally-grounded answer: {s2}")
 
-    n = len(FIXTURES) + len(MARKER_FIXTURES) + 2
+    n = len(FIXTURES) + len(MARKER_FIXTURES) + len(SPLIT_FIXTURES) + 2
     if failures:
         print(f"FAIL  {len(failures)}/{n} checks failed\n", file=sys.stderr)
         for f in failures:

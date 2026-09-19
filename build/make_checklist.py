@@ -390,10 +390,21 @@ def main():
         path.write_text(blob, encoding="utf-8")
         digest = hashlib.sha256(blob.encode("utf-8")).hexdigest()
         n = len(obj.get("flags") or obj.get("markers"))
-        lines.append(f"{path.name}  entries={n}  sha256={digest}")
+        lines.append(f"path=data/{path.name} entries={n} sha256={digest}")
         print(lines[-1])
+
+    # The sentence splitter decides which contrast cues reach which triggers, so
+    # it changes flag counts as surely as the pattern files do. It is part of the
+    # instrument and is frozen with them.
+    for rel in ("score/detect.py",):
+        digest = hashlib.sha256((ROOT / rel).read_bytes()).hexdigest()
+        lines.append(f"path={rel} sha256={digest}")
+        print(lines[-1])
+
     (ROOT / "data" / "INSTRUMENT_HASHES.txt").write_text(
-        f"# frozen {FROZEN_AT}, version {VERSION}\n" + "\n".join(lines) + "\n", encoding="utf-8"
+        f"# frozen {FROZEN_AT}, version {VERSION}\n"
+        f"# Any change here needs an entry in data/CHECKLIST_CHANGELOG.md.\n"
+        + "\n".join(lines) + "\n", encoding="utf-8"
     )
 
 
