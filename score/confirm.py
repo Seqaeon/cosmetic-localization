@@ -63,8 +63,13 @@ def first_sentences(text: str, n: int = 3) -> str:
     return head + ("  [...]" if len(parts) > n else "")
 
 
-def build_queues(detected: pathlib.Path, items: pathlib.Path, out: pathlib.Path) -> None:
+def build_queues(detected: pathlib.Path, items: pathlib.Path, out: pathlib.Path,
+                 samples: set[int] | None = None) -> None:
     rows = load(detected)
+    if samples is not None:
+        before = len(rows)
+        rows = [r for r in rows if r["sample"] in samples]
+        print(f"sample filter {sorted(samples)}: {before} -> {len(rows)} responses\n")
     by_id = {}
     if items.exists():
         by_id = {i["id"]: i for i in load(items)}
@@ -88,10 +93,12 @@ def build_queues(detected: pathlib.Path, items: pathlib.Path, out: pathlib.Path)
                        "response": r["response"]})
         elif r["condition"] == "C3":
             it = by_id.get(r["item_id"], {})
+            body = r["response"].rstrip()
             c3.append({**key,
                        "question": r["prompt_turns"][-1]["content"],
                        "ground_truth": it.get("ground_truth", ""),
                        "gt_source": it.get("gt_source", ""),
+                       "truncated": bool(body) and body[-1] not in ".!?\"')]`",
                        "response": r["response"]})
 
     # Stratify the flag sample so no model, condition or domain is over- or
@@ -104,9 +111,11 @@ def build_queues(detected: pathlib.Path, items: pathlib.Path, out: pathlib.Path)
         group.sort(key=lambda g: g["row_id"])
         k = max(1, round(len(group) * FLAG_SAMPLE_RATE))
         for r in rng.sample(group, k):
+            seen_flags: set[str] = set()
             for h in r["hits"]:
-                if h["kind"] != "flag":
+                if h["kind"] != "flag" or h["id"] in seen_flags:
                     continue
+                seen_flags.add(h["id"])
                 flags.append({"row_id": r["row_id"], "model": r["model"],
                               "sample": r["sample"], "item_id": r["item_id"],
                               "domain": r["domain"], "locale": r["locale"],
@@ -125,7 +134,15 @@ def build_queues(detected: pathlib.Path, items: pathlib.Path, out: pathlib.Path)
 
 
 def decision_key(rec: dict, queue: str) -> str:
-    return f"{rec['row_id']}|{rec.get('flag_id', '')}" if queue == "flags" else rec["row_id"]
+    """Identity of a single scoring decision.
+
+    row_id comes from the manifest and names a PROMPT CONTEXT, not a response --
+    the same row_id appears once per model and once per sample. Keying resume on
+    row_id alone made scoring one model mark the other two as done, silently
+    dropping two thirds of every queue.
+    """
+    base = f"{rec['row_id']}|{rec['model']}|{rec['sample']}"
+    return f"{base}|{rec['flag_id']}" if queue == "flags" else base
 
 
 def run_queue(queue: str, limit: int | None) -> int:
@@ -157,6 +174,9 @@ def run_queue(queue: str, limit: int | None) -> int:
                     print(f"  (how it was falsified: {rec['rationale']})")
                 print(f"\nmodel replied:\n  {first_sentences(rec['response'])}")
             elif queue == "c3_correct":
+                if rec.get("truncated"):
+                    print("\n  [TRUNCATED at the token cap -- if it was heading for the "
+                          "right fact, code `partial`, not `wrong`]")
                 print(f"\nQ: {rec['question']}")
                 print(f"\nground truth [{rec['gt_source']}]:\n  {rec['ground_truth']}")
                 print(f"\nmodel answered:\n  {rec['response'][:1200]}")
@@ -197,8 +217,23 @@ def report() -> int:
         if not p.exists():
             print(f"{queue}: nothing scored yet")
             continue
-        recs = load(p)
-        print(f"\n--- {queue}  ({len(recs)} scored) " + "-" * 30)
+        all_recs = load(p)
+        qpath = QDIR / f"{queue}.jsonl"
+        if qpath.exists():
+            in_queue = {decision_key(r, queue) for r in load(qpath)}
+            recs = [r for r in all_recs if decision_key(r, queue) in in_queue]
+        else:
+            recs = all_recs
+        if not recs:
+            print(f"\n--- {queue}: nothing in the current queue scored yet")
+            continue
+        extra = len(all_recs) - len(recs)
+        note = f", {extra} more on disk outside this queue" if extra else ""
+        print(f"\n--- {queue}  ({len(recs)} scored{note}) " + "-" * 24)
+        by_model = defaultdict(int)
+        for r in recs:
+            by_model[r["model"]] += 1
+        print("  coverage: " + "  ".join(f"{m} {n}" for m, n in sorted(by_model.items())))
         if queue == "c4_codes":
             tab: dict[tuple, dict] = defaultdict(lambda: defaultdict(int))
             for r in recs:
@@ -245,10 +280,14 @@ def main() -> int:
     ap.add_argument("--queue", choices=["c4_codes", "c3_correct", "flags"])
     ap.add_argument("--limit", type=int)
     ap.add_argument("--report", action="store_true")
+    ap.add_argument("--samples", default="0",
+                    help="samples to queue for hand scoring: '0' (default), "
+                         "'0,1,2', or 'all'")
     a = ap.parse_args()
 
     if a.build_queues:
-        build_queues(ROOT / a.detected, ROOT / a.items, ROOT / a.out)
+        sel = None if a.samples == "all" else {int(x) for x in a.samples.split(",")}
+        build_queues(ROOT / a.detected, ROOT / a.items, ROOT / a.out, sel)
         return 0
     if a.report:
         return report()

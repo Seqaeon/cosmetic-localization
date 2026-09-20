@@ -162,6 +162,22 @@ run(cfg)
 """),
 
 md("""
+## 5b — Integrity audit (do not skip)
+
+Mechanical checks that decide whether the run is scoreable at all: reasoning-trace
+leaks, truncation against the token cap, refusals, placeholder leaks, and the
+length confound — if localized answers are simply shorter, a lower flag count is
+an artefact rather than a locale effect.
+
+The first gate run shipped 666 responses that were pure reasoning with no answer,
+because the runbook asked a human to notice and a human did not. `engine.py` now
+raises on that, and this cell catches the rest.
+"""),
+code("""
+!python analysis/audit.py --detected results/detected_{PHASE}.jsonl
+"""),
+
+md("""
 ## 6 — Determinism check
 
 "Fixed seed" should be a verified claim, not a stated one. Re-runs one cell at

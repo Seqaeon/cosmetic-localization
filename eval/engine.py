@@ -23,6 +23,7 @@ import gc
 import json
 import os
 import pathlib
+import re
 import time
 from dataclasses import dataclass, field
 
@@ -44,11 +45,37 @@ MODELS: dict[str, dict] = {
     ),
     "minicpm5-2b": dict(
         hf_id="openbmb/MiniCPM5-2B", lab="OpenBMB", origin="CN", params="2.5B",
-        template_kwargs={}, supports_system=True, trust_remote_code=True,
+        # MiniCPM5 reasons by default. Left on, it spends the whole budget inside
+        # <think> and the response scored is the model's internal monologue, not
+        # its advice. The kwarg is applied best-effort and the leak guard below
+        # is what actually catches failure.
+        template_kwargs={"enable_thinking": False}, supports_system=True,
+        trust_remote_code=True,
     ),
 }
 
-MAX_TOKENS = {"C1": 512, "C2": 512, "C3": 512, "C4-true": 256, "C4-false": 256}
+# Responses were hitting these caps: word counts clustered hard against the
+# limit and 87% of a 512-token run ended without terminal punctuation. Uniform
+# truncation does not bias the between-condition comparisons, but it floors the
+# absolute rates and makes the transcripts useless as a qualitative appendix.
+MAX_TOKENS = {"C1": 1024, "C2": 1024, "C3": 1024, "C4-true": 384, "C4-false": 384}
+
+_THINK = re.compile(r"<think>.*?</think>\s*", re.S | re.I)
+_THINK_OPEN = re.compile(r"<think>", re.I)
+
+
+def strip_reasoning(text: str) -> tuple[str, str]:
+    """Remove a closed reasoning block. Returns (clean_text, status).
+
+    status is 'clean' (nothing there), 'stripped' (a closed block removed), or
+    'unclosed' (the generation never left the reasoning block, so there is no
+    answer at all and the record must not be scored)."""
+    if not _THINK_OPEN.search(text):
+        return text, "clean"
+    out = _THINK.sub("", text).strip()
+    if _THINK_OPEN.search(out) or not out:
+        return out, "unclosed"
+    return out, "stripped"
 TEMPERATURE = 0.7
 TOP_P = 0.9
 C2_PLACEHOLDER = "__C2_RESPONSE__"
@@ -64,6 +91,9 @@ class RunConfig:
     temperature: float = TEMPERATURE
     top_p: float = TOP_P
     limit: int | None = None
+    conditions: set[str] | None = None   # re-run one condition without disturbing others
+    max_tokens: int | None = None        # override; a partial re-run MUST match the
+    max_tokens_c4: int | None = None     # caps of the run it is being merged into
     backend: str = "auto"
     extra: dict = field(default_factory=dict)
 
@@ -257,14 +287,18 @@ def run_model(key: str, rows: list[dict], cfg: RunConfig) -> list[dict]:
             if not batch:
                 continue
             t0 = time.time()
-            texts = be.generate([r["turns"] for r in batch], MAX_TOKENS[cond], seed, cfg)
+            texts = be.generate([r["turns"] for r in batch],
+                                cfg.max_tokens or MAX_TOKENS[cond], seed, cfg)
             print(f"    s{s} {cond:8s} {len(batch):4d} rows  {time.time() - t0:6.1f}s")
             for r, txt in zip(batch, texts):
+                clean, status = strip_reasoning(txt)
                 results.append({**{k: v for k, v in r.items() if k != "turns"},
                                 "model": key, "sample": s, "seed": seed,
-                                "prompt_turns": r["turns"], "response": txt})
+                                "prompt_turns": r["turns"], "response": clean,
+                                "raw_response": txt if status != "clean" else None,
+                                "reasoning": status})
                 if cond == "C2" and r["signal"] == "explicit":
-                    c2_by[(r["item_id"], s)] = txt
+                    c2_by[(r["item_id"], s)] = clean
 
         for cond in ("C4-true", "C4-false"):
             batch = [r for r in pass2 if r["condition"] == cond]
@@ -281,12 +315,31 @@ def run_model(key: str, rows: list[dict], cfg: RunConfig) -> list[dict]:
             if not convs:
                 continue
             t0 = time.time()
-            texts = be.generate(convs, MAX_TOKENS[cond], seed, cfg)
+            texts = be.generate(convs, cfg.max_tokens_c4 or MAX_TOKENS[cond], seed, cfg)
             print(f"    s{s} {cond:8s} {len(convs):4d} rows  {time.time() - t0:6.1f}s")
             for r, conv, txt in zip(kept, convs, texts):
+                clean, status = strip_reasoning(txt)
                 results.append({**{k: v for k, v in r.items() if k != "turns"},
                                 "model": key, "sample": s, "seed": seed,
-                                "prompt_turns": conv, "response": txt})
+                                "prompt_turns": conv, "response": clean,
+                                "raw_response": txt if status != "clean" else None,
+                                "reasoning": status})
+
+    bad = [r for r in results if r["reasoning"] == "unclosed"]
+    strip = [r for r in results if r["reasoning"] == "stripped"]
+    if strip:
+        print(f"    reasoning blocks stripped from {len(strip)}/{len(results)} responses")
+    if bad:
+        frac = len(bad) / len(results)
+        print(f"\n    *** {len(bad)}/{len(results)} ({frac:.1%}) responses never left the "
+              f"reasoning block: no answer was produced. ***")
+        print(f"    *** {key}: disable thinking for this checkpoint or raise MAX_TOKENS "
+              f"before scoring anything. ***\n")
+        if frac > 0.05:
+            raise RuntimeError(
+                f"{key}: {frac:.1%} of responses are reasoning-only. Scoring these would "
+                f"measure the model's internal monologue rather than its advice. Fix the "
+                f"chat template kwargs or the token budget and re-run this model.")
 
     del be
     gc.collect()
@@ -300,6 +353,14 @@ def run_model(key: str, rows: list[dict], cfg: RunConfig) -> list[dict]:
 
 def run(cfg: RunConfig) -> pathlib.Path:
     rows = load_manifest(cfg.manifest, cfg.limit)
+    if cfg.conditions:
+        # C4 is layered on the model's own C2 answer, so asking for C4 alone
+        # would have nothing to build on. Pull C2 in silently when needed.
+        want = set(cfg.conditions)
+        if any(c.startswith("C4") for c in want):
+            want.add("C2")
+        rows = [r for r in rows if r["condition"] in want]
+        print(f"condition filter {sorted(cfg.conditions)}: {len(rows)} contexts")
     print(f"manifest: {len(rows)} contexts x {cfg.samples} samples x {len(cfg.models)} models "
           f"= {len(rows) * cfg.samples * len(cfg.models)} generations")
     cfg.out.parent.mkdir(parents=True, exist_ok=True)

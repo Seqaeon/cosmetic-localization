@@ -19,6 +19,15 @@ def main() -> int:
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--limit", type=int, default=None,
                     help="first N items only; use for a smoke test")
+    ap.add_argument("--conditions", nargs="+",
+                    choices=["C1", "C2", "C3", "C4-true", "C4-false"],
+                    help="re-run only these conditions; C2 is pulled in automatically "
+                         "when a C4 arm is requested, since C4 builds on it")
+    ap.add_argument("--max-tokens", type=int,
+                    help="override the C1/C2/C3 cap. A partial re-run merged into an "
+                         "existing run must use that run's caps, or conditions become "
+                         "incomparable within a model.")
+    ap.add_argument("--max-tokens-c4", type=int, help="override the C4 cap")
     ap.add_argument("--backend", choices=["auto", "vllm", "hf", "dryrun"], default="auto")
     ap.add_argument("--gpu-memory-utilization", type=float, default=0.42,
                     help="per-model share; three resident models need to fit together")
@@ -32,6 +41,8 @@ def main() -> int:
         models=a.models, manifest=ROOT / a.manifest, out=ROOT / a.out,
         samples=a.samples, seed=a.seed, temperature=a.temperature,
         limit=a.limit, backend=a.backend,
+        conditions=set(a.conditions) if a.conditions else None,
+        max_tokens=a.max_tokens, max_tokens_c4=a.max_tokens_c4,
         extra={"gpu_memory_utilization": a.gpu_memory_utilization},
     ))
     return 0
